@@ -11,3 +11,8 @@ sky:
     access-key-id: example
     appid: example
     appid: example-study
+  redis:
+    host: localhost
+    port: 6379
+    password:
+    database: 0
