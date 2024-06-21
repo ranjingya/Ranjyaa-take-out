@@ -35,10 +35,10 @@
     <select id="pageQuery" resultType="com.sky.vo.SetmealVO">
         SELECT s.*, c.name category_name from setmeal s LEFT OUTER JOIN category c ON s.category_id = c.id
         <where>
-            <if test="name != null">and name like concat('%', #{name}, '%')</if>
-            <if test="categoryId != null">and category_id = #{categoryId}</if>
-            <if test="status != null">and status = #{status}</if>
+            <if test="name != null">and s.name like concat('%', #{name}, '%')</if>
+            <if test="categoryId != null">and s.category_id = #{categoryId}</if>
+            <if test="status != null">and s.status = #{status}</if>
         </where>
-        order by create_time desc
+        order by s.create_time desc
     </select>
 </mapper>

@@ -89,6 +89,9 @@ public class DishServiceImpl implements DishService {
     @Override
     public void deleteBatch(List<Long> ids) {
 
+        if(ids.isEmpty())
+            throw new DeletionNotAllowedException(MessageConstant.DELETE_NOT_CHOOSE);
+
         // 判断当前菜品是否能够删除
         // 是否启售中？
         for (Long id : ids) {

@@ -66,4 +66,12 @@ public interface DishMapper {
      * @return
      */
     List<Dish> list(Dish dish);
+
+    /**
+     * 根据套餐id查询菜品信息列表
+     * @param id
+     * @return
+     */
+    @Select("SELECT d.* FROM dish d LEFT OUTER JOIN setmeal_dish sd on sd.dish_id = d.id WHERE sd.setmeal_id = #{id}")
+    List<Dish> getDishBySetmealId(Long id);
 }
