@@ -375,6 +375,7 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 管理端取消订单
+     *
      * @param ordersCancelDTO
      */
     @Override
@@ -395,6 +396,46 @@ public class OrderServiceImpl implements OrderService {
                 .build();
         orderMapper.update(orders);
     }
+
+    /**
+     * 订单派送
+     *
+     * @param id
+     */
+    @Override
+    public void delivery(Long id) {
+        Orders order = orderMapper.getById(id);
+        if (order != null && !order.getStatus().equals(Orders.CONFIRMED)) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+
+        Orders orders = Orders.builder()
+                .id(id)
+                .status(Orders.DELIVERY_IN_PROGRESS)
+                .build();
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 完成订单
+     *
+     * @param id
+     */
+    @Override
+    public void complete(Long id) {
+        Orders order = orderMapper.getById(id);
+        if (order != null && !order.getStatus().equals(Orders.DELIVERY_IN_PROGRESS)) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+
+        Orders orders = Orders.builder()
+                .id(id)
+                .status(Orders.COMPLETED)
+                .deliveryTime(LocalDateTime.now())
+                .build();
+        orderMapper.update(orders);
+    }
+
 
     /**
      * 获取订单详情中所有菜品并拼接
