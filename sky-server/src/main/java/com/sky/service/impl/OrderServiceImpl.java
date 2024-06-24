@@ -7,7 +7,6 @@ import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
-import com.sky.dto.OrdersRejectionDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.*;
 import com.sky.exception.AddressBookBusinessException;
@@ -18,6 +17,7 @@ import com.sky.result.PageResult;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
+import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
 import org.springframework.beans.BeanUtils;
@@ -25,10 +25,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.beans.beancontext.BeanContext;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 public class OrderServiceImpl implements OrderService {
@@ -261,10 +261,6 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     public void repetition(Long id) {
-        Orders orders = orderMapper.getById(id);
-        if (orders == null) {
-            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
-        }
 
         List<OrderDetail> orderList = orderDetailMapper.getByOrderId(id);
         List<ShoppingCart> shoppingCartList = new ArrayList<>();
@@ -280,5 +276,61 @@ public class OrderServiceImpl implements OrderService {
 
         shoppingCartMapper.insertBatch(shoppingCartList);
 
+    }
+
+    /**
+     * 订单分页条件搜索
+     *
+     * @param ordersPageQueryDTO
+     * @return
+     */
+    @Override
+    public PageResult conditionSearch(OrdersPageQueryDTO ordersPageQueryDTO) {
+        PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
+
+        Page<Orders> page = orderMapper.pageQuery(ordersPageQueryDTO);
+        List<OrderVO> orderVOList = new ArrayList<>();
+
+        if (page != null && !page.isEmpty()) {
+            for (Orders orders : page) {
+                OrderVO orderVO = new OrderVO();
+                BeanUtils.copyProperties(orders, orderVO);
+                // 还有菜品字符串
+                orderVO.setOrderDishes(getDishStr(orders));
+                orderVOList.add(orderVO);
+            }
+        }
+        return new PageResult(page.getTotal(), orderVOList);
+    }
+
+    /**
+     * 各个状态的订单数量统计
+     *
+     * @return
+     */
+    @Override
+    public OrderStatisticsVO statistics() {
+        Integer toBeConfirmed = orderMapper.getStatus(Orders.TO_BE_CONFIRMED);
+        Integer confirmed = orderMapper.getStatus(Orders.CONFIRMED);
+        Integer deliveryInProgress = orderMapper.getStatus(Orders.DELIVERY_IN_PROGRESS);
+
+        return OrderStatisticsVO.builder()
+                .toBeConfirmed(toBeConfirmed)
+                .confirmed(confirmed)
+                .deliveryInProgress(deliveryInProgress)
+                .build();
+    }
+
+    /**
+     * 获取订单详情中所有菜品并拼接
+     * @param orders
+     * @return
+     */
+    private String getDishStr(Orders orders) {
+        List<OrderDetail> orderDetailList = orderDetailMapper.getByOrderId(orders.getId());
+        return orderDetailList
+                .stream()
+                .map(dish -> dish.getName() + "*" + dish.getNumber())
+                .collect(Collectors.joining(";\n"));
     }
 }

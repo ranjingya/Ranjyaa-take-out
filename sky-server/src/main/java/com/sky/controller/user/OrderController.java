@@ -7,6 +7,7 @@ import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.OrderService;
 import com.sky.vo.OrderPaymentVO;
+import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
 import io.swagger.annotations.Api;
@@ -82,6 +83,11 @@ public class OrderController {
     }
 
 
+    /**
+     * 用户取消订单
+     * @param id
+     * @return
+     */
     @PutMapping("/cancel/{id}")
     @ApiOperation("用户取消订单")
     public Result cancel(@PathVariable Long id){
@@ -90,6 +96,11 @@ public class OrderController {
         return Result.success();
     }
 
+    /**
+     * 再来一单
+     * @param id
+     * @return
+     */
     @PostMapping("/repetition/{id}")
     @ApiOperation("再来一单")
     public Result repetition(@PathVariable Long id){
@@ -97,4 +108,5 @@ public class OrderController {
         orderService.repetition(id);
         return Result.success();
     }
+
 }
