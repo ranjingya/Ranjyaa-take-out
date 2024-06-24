@@ -5,9 +5,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
-import com.sky.dto.OrdersPageQueryDTO;
-import com.sky.dto.OrdersPaymentDTO;
-import com.sky.dto.OrdersSubmitDTO;
+import com.sky.dto.*;
 import com.sky.entity.*;
 import com.sky.exception.AddressBookBusinessException;
 import com.sky.exception.OrderBusinessException;
@@ -20,6 +18,7 @@ import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -31,6 +30,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Controller
+@Slf4j
 public class OrderServiceImpl implements OrderService {
 
     @Autowired
@@ -85,6 +85,7 @@ public class OrderServiceImpl implements OrderService {
                 .consignee(addressBook.getConsignee())
                 .userId(userId)
                 .userName(userMapper.getById(userId).getName())
+//                .deliveryStatus(ordersSubmitDTO.getDeliveryStatus())  // 前端就没传过来值
                 .build();
         BeanUtils.copyProperties(ordersSubmitDTO, orders);
         orderMapper.insert(orders);
@@ -219,6 +220,11 @@ public class OrderServiceImpl implements OrderService {
         return orderVO;
     }
 
+    /**
+     * 用户取消订单
+     *
+     * @param id
+     */
     @Override
     public void userCancel(Long id) {
 
@@ -322,7 +328,77 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
+     * 接单
+     *
+     * @param ordersDTO
+     */
+    @Override
+    public void confirm(OrdersDTO ordersDTO) {
+        Orders orders = Orders.builder()
+                .id(ordersDTO.getId())
+                .status(Orders.CONFIRMED)
+                .build();
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 拒单
+     *
+     * @param ordersRejectionDTO
+     */
+    @Override
+    public void rejection(OrdersRejectionDTO ordersRejectionDTO) {
+
+        Long id = ordersRejectionDTO.getId();
+        Orders order = orderMapper.getById(id);
+        // 状态为待接单才可以设置成拒单
+        if (order != null && !order.getStatus().equals(Orders.TO_BE_CONFIRMED)) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+
+        // 已付款的要退款
+        if (order.getPayStatus().equals(Orders.PAID)) {
+            log.info("退款：{}", order.getNumber());
+        }
+
+        Orders orders = Orders.builder()
+                .id(id)
+                .status(Orders.CANCELLED)
+                .rejectionReason(ordersRejectionDTO.getRejectionReason())
+                .cancelReason(ordersRejectionDTO.getRejectionReason())
+                .payStatus(Orders.REFUND)
+                .cancelTime(LocalDateTime.now())
+                .build();
+
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 管理端取消订单
+     * @param ordersCancelDTO
+     */
+    @Override
+    public void adminCancel(OrdersCancelDTO ordersCancelDTO) {
+        Long id = ordersCancelDTO.getId();
+        Orders order = orderMapper.getById(id);
+
+        // 已付款的退款
+        if (order.getPayStatus().equals(Orders.PAID)) {
+            log.info("退款：{}", order.getNumber());
+        }
+        Orders orders = Orders.builder()
+                .id(id)
+                .payStatus(Orders.REFUND)
+                .status(Orders.CANCELLED)
+                .cancelTime(LocalDateTime.now())
+                .cancelReason(ordersCancelDTO.getCancelReason())
+                .build();
+        orderMapper.update(orders);
+    }
+
+    /**
      * 获取订单详情中所有菜品并拼接
+     *
      * @param orders
      * @return
      */
