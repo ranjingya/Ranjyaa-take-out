@@ -7,9 +7,11 @@ import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
+import com.sky.dto.OrdersRejectionDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.*;
 import com.sky.exception.AddressBookBusinessException;
+import com.sky.exception.OrderBusinessException;
 import com.sky.exception.ShoppingCartBusinessException;
 import com.sky.mapper.*;
 import com.sky.result.PageResult;
@@ -71,16 +73,19 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 向订单表插入一条数据
-        Orders orders = new Orders();
+        String address = addressBook.getProvinceName() + addressBook.getCityName() + addressBook.getDistrictName() + addressBook.getDetail();
+        Orders orders = Orders.builder()
+                .orderTime(LocalDateTime.now())
+                .address(address)
+                .payStatus(Orders.UN_PAID)
+                .status(Orders.PENDING_PAYMENT)
+                .number(String.valueOf(System.currentTimeMillis()))
+                .phone(addressBook.getPhone())
+                .consignee(addressBook.getConsignee())
+                .userId(userId)
+                .userName(userMapper.getById(userId).getName())
+                .build();
         BeanUtils.copyProperties(ordersSubmitDTO, orders);
-        orders.setOrderTime(LocalDateTime.now());
-        orders.setPayStatus(Orders.UN_PAID);
-        orders.setStatus(Orders.PENDING_PAYMENT);
-        orders.setNumber(String.valueOf(System.currentTimeMillis()));
-        orders.setPhone(addressBook.getPhone());
-        orders.setConsignee(addressBook.getConsignee());
-        orders.setUserId(userId);
-
         orderMapper.insert(orders);
 
         List<OrderDetail> orderDetailList = new ArrayList<>();
@@ -165,6 +170,7 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 历史订单分页查询
+     *
      * @param pageNum
      * @param pageSize
      * @param status
@@ -194,5 +200,56 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         return new PageResult(page.getTotal(), voList);
+    }
+
+    /**
+     * 订单详情查询
+     *
+     * @param id 订单id
+     * @return
+     */
+    @Override
+    public OrderVO details(Long id) {
+        OrderVO orderVO = new OrderVO();
+        Orders orders = orderMapper.getById(id);
+        BeanUtils.copyProperties(orders, orderVO);
+        List<OrderDetail> list = orderDetailMapper.getByOrderId(id);
+        orderVO.setOrderDetailList(list);
+        return orderVO;
+    }
+
+    @Override
+    public void userCancel(Long id) {
+
+        // 查询订单，判断订单状态
+        Orders orders = orderMapper.getById(id);
+        if (orders == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+
+        // 其他抛异常（与商家联系）
+        if (orders.getStatus() > 2) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+
+        // 待接单需退款
+        if (orders.getStatus().equals(Orders.TO_BE_CONFIRMED)) {
+
+/*            //调用微信支付退款接口
+            weChatPayUtil.refund(
+                    ordersDB.getNumber(), //商户订单号
+                    ordersDB.getNumber(), //商户退款单号
+                    new BigDecimal(0.01),//退款金额，单位 元
+                    new BigDecimal(0.01));//原订单金额
+*/
+            orders.setPayStatus(Orders.REFUND);
+        }
+
+        // 待付款直接取消
+        // 更新订单状态、取消原因、取消时间
+        orders.setStatus(Orders.CANCELLED);
+        orders.setCancelReason("用户取消");
+        orders.setCancelTime(LocalDateTime.now());
+        orderMapper.update(orders);
     }
 }
