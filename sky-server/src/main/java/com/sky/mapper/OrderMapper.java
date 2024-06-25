@@ -10,6 +10,7 @@ import org.apache.ibatis.annotations.Select;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface OrderMapper {
@@ -71,4 +72,10 @@ public interface OrderMapper {
      * @return
      */
     List<DailyTurnover> sumByMap(LocalDate begin, LocalDate end, Integer status);
+
+    /**
+     * 订单统计
+     * @return
+     */
+    Integer countByMap(Map map);
 }
