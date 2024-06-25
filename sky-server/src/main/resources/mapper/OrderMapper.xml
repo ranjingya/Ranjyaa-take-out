@@ -69,4 +69,18 @@
         </where>
         order by order_time desc
     </select>
+
+    <select id="sumByMap" resultType="com.sky.entity.DailyTurnover">
+        SELECT DATE(order_time) as date, SUM(amount) as turnover
+        FROM orders
+        <where>
+            <if test="begin != null and end != null">
+                DATE(order_time) BETWEEN #{begin} AND #{end}
+            </if>
+            <if test="status != null">
+                AND `status` = #{status}
+            </if>
+        </where>
+        GROUP BY DATE(order_time)
+    </select>
 </mapper>
