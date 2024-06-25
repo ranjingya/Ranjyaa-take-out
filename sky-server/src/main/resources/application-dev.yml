@@ -8,26 +8,26 @@ sky:
     password: 123456
   alioss:
     endpoint: oss-cn-nanjing.aliyuncs.com
-    access-key-id: example
-    appid: example
-    appid: example-study
+    access-key-id: *
+    access-key-secret: *
+    bucket-name: *
   redis:
     host: localhost
     port: 6379
     password:
     database: 0
   wechat:
-    appid: example
-    secret: example
-    mchid: 1561414331
-    mchSerialNo: 4B3B3DC35414AD50B1B755BAF8DE9CC7CF407606
-    privateKeyFilePath: C:\software\apiclient_key.pem
-    apiV3Key: CZBK51236435wxpay435434323FFDuv3
-    weChatPayCertFilePat: C:\software\wechatpay_166D96F876F45C7D07CE98952A96EC980368ACFC.pem
-    notifyUrl: https://4cb5c31a.r20.cpolar.top/notify/paySuccess
-    refundNotifyUrl: https://4cb5c31a.r20.cpolar.top/notify/refundSuccess
+    appid: *
+    secret: *
+    mchid: *
+    mchSerialNo: *
+    privateKeyFilePath: *
+    apiV3Key: *
+    weChatPayCertFilePat: *
+    notifyUrl: *
+    refundNotifyUrl: *
   shop:
     address: 江苏科技大学（长山校区）
     shop-coordinate: 32.111581,119.363188
   baidu:
-    ak: example
+    ak: *
