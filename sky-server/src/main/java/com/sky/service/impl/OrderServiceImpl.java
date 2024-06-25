@@ -1,6 +1,7 @@
 package com.sky.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -37,7 +38,7 @@ import java.util.stream.Collectors;
 public class OrderServiceImpl implements OrderService {
 
     public static final String GEOCODING = "https://api.map.baidu.com/geocoding/v3";
-    public static final String DIRECTION_LITE = "https://api.map.baidu.com/directionlite/v1";
+    public static final String DIRECTION_LITE = "https://api.map.baidu.com/directionlite/v1/driving";
 
     @Autowired
     private OrderMapper orderMapper;
@@ -80,7 +81,8 @@ public class OrderServiceImpl implements OrderService {
         String address = addressBook.getProvinceName() + addressBook.getCityName() + addressBook.getDistrictName() + addressBook.getDetail();
 
         // 检查是否超出配送范围
-//        checkOutOfRange(address);
+        log.info("检查是否超出配送范围：{}", address);
+        checkOutOfRange(address);
 
         // 查询当前用户购物车数据
         Long userId = BaseContext.getCurrentId();
@@ -464,6 +466,7 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 客户催单
+     *
      * @param id
      */
     @Override
@@ -494,8 +497,6 @@ public class OrderServiceImpl implements OrderService {
                 .stream()
                 .map(dish -> dish.getName() + "*" + dish.getNumber())
                 .collect(Collectors.joining(";\n"));
-
-
     }
 
     /**
@@ -531,28 +532,38 @@ public class OrderServiceImpl implements OrderService {
 
         JSONObject jsonObject = JSON.parseObject(userCoordinateJson);
         if (!jsonObject.getString("status").equals("0")) {
+            log.error(userCoordinateJson);
             throw new OrderBusinessException(MessageConstant.USER_ADDRESS_DECODE_FAILED);
         }
 
         JSONObject result = jsonObject.getJSONObject("result").getJSONObject("location");
-        String lat = result.getString("lat");
-        String lng = result.getString("lng");
-        String userLngLat = lng + "," + lat;
+
+        String userLatLng = result.getString("lat") + "," + result.getString("lng");
+
+//        double lat = Double.parseDouble(result.getString("lat"));
+//        double lng = Double.parseDouble(result.getString("lng"));
+//        String formattedLat = String.format("%.6f", lat);
+//        String formattedLng = String.format("%.6f", lng);
+//        String formattedUserLatLng = formattedLat + "," + formattedLng;
 
         // 路线规划，获取路线总长度
         map.put("origin", shopCoordinate);
-        map.put("destination", userLngLat);
+        map.put("destination", userLatLng);
         map.put("steps_info", "0");
+        log.info("路线规划：origin：{}，destination：{}", shopCoordinate, userLatLng);
+
         String planJson = HttpClientUtil.doGet(DIRECTION_LITE, map);
         jsonObject = JSON.parseObject(planJson);
         if (!jsonObject.getString("status").equals("0")) {
+            log.error(planJson);
             throw new OrderBusinessException(MessageConstant.DELIVERY_ROUTE_PLAN_FAILED);
         }
         result = jsonObject.getJSONObject("result");
-        ArrayList<Object> routesArr = (ArrayList<Object>) result.get("routes");
-        Integer distance = (Integer) routesArr.get(0);
+        JSONArray routesArr = (JSONArray) result.get("routes");
+        Integer distance = (Integer) ((JSONObject) routesArr.get(0)).get("distance");
+        log.info("距离：{}", distance);
 
-        if (distance > 5000) {
+        if (distance > 10000) {
             throw new OrderBusinessException(MessageConstant.OUT_OF_DELIVERY_RANGE);
         }
     }

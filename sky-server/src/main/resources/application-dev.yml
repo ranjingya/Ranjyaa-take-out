@@ -28,6 +28,6 @@ sky:
     refundNotifyUrl: https://4cb5c31a.r20.cpolar.top/notify/refundSuccess
   shop:
     address: 江苏科技大学（长山校区）
-    shop-coordinate: 119.363188,32.111581
+    shop-coordinate: 32.111581,119.363188
   baidu:
-    ak:
+    ak: example
