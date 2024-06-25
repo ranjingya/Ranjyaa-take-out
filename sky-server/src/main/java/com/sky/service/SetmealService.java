@@ -8,6 +8,7 @@ import com.sky.vo.DishItemVO;
 import com.sky.vo.SetmealVO;
 
 import java.util.List;
+import java.util.Map;
 
 public interface SetmealService {
     /**
@@ -61,4 +62,5 @@ public interface SetmealService {
      * @return
      */
     List<DishItemVO> getDishItemById(Long id);
+
 }

@@ -40,6 +40,7 @@ public interface OrderMapper {
 
     /**
      * 历史订单分页查询
+     *
      * @param ordersPageQueryDTO
      * @return
      */
@@ -47,6 +48,7 @@ public interface OrderMapper {
 
     /**
      * 根据订单id查询订单
+     *
      * @param id
      * @return
      */
@@ -55,6 +57,7 @@ public interface OrderMapper {
 
     /**
      * 各个状态的订单数量统计
+     *
      * @param status
      * @return
      */
@@ -72,19 +75,30 @@ public interface OrderMapper {
      * @param status
      * @return
      */
-    List<DailyTurnover> sumByMap(LocalDate begin, LocalDate end, Integer status);
+    List<DailyTurnover> sum(LocalDate begin, LocalDate end, Integer status);
+
+    /**
+     * 日期区间营业额统计(map)
+     *
+     * @param map
+     * @return
+     */
+    Double sumByMap(Map map);
 
     /**
      * 订单统计
+     *
      * @return
      */
     Integer countByMap(Map map);
 
     /**
      * 统计指定时间区间销量排名前十
+     *
      * @param begin
      * @param end
      * @return
      */
     List<GoodsSalesDTO> getSalesTop10(LocalDateTime begin, LocalDateTime end);
+
 }

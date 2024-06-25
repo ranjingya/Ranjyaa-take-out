@@ -42,7 +42,7 @@ public class ReportServiceImpl implements ReportService {
     public TurnoverReportVO getTurnOverStatistics(LocalDate begin, LocalDate end) {
 
         // date， turnover
-        List<DailyTurnover> dailyTurnovers = orderMapper.sumByMap(begin, end, Orders.COMPLETED);
+        List<DailyTurnover> dailyTurnovers = orderMapper.sum(begin, end, Orders.COMPLETED);
 
         List<LocalDate> dateList = new ArrayList<>();
         dateList.add(begin);

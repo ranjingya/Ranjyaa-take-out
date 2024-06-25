@@ -8,6 +8,7 @@ import com.sky.result.PageResult;
 import com.sky.vo.DishVO;
 
 import java.util.List;
+import java.util.Map;
 
 public interface DishService {
 
@@ -62,4 +63,11 @@ public interface DishService {
      * @return
      */
     List<DishVO> listWithFlavor(Dish dish);
+
+//    /**
+//     * 根据条件统计菜品数量
+//     * @param map
+//     * @return
+//     */
+//    Integer countByMap(Map map);
 }
