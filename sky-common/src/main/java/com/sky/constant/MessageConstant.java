@@ -24,11 +24,14 @@ public class MessageConstant {
     public static final String DISH_BE_RELATED_BY_SETMEAL = "当前菜品关联了套餐,不能删除";
     public static final String ORDER_STATUS_ERROR = "订单状态错误";
     public static final String ORDER_NOT_FOUND = "订单不存在";
+    public static final String ORDER_PAYMENT_TIMEOUT = "订单超时未支付，系统自动取消";
+
     public static final String DELETE_NOT_CHOOSE = "请选择要删除的条目";
     public static final String SHOP_ADDRESS_DECODE_FAILED = "店铺地址解析失败";
     public static final String USER_ADDRESS_DECODE_FAILED = "收货地址解析失败";
     public static final String DELIVERY_ROUTE_PLAN_FAILED = "配送路线规划失败";
     public static final String OUT_OF_DELIVERY_RANGE = "超出配送范围";
+
 
 
 }

@@ -29,6 +29,12 @@
             <if test="phone != null">
                 phone = #{phone},
             </if>
+            <if test="provinceCode">province_code = #{provinceCode},</if>
+            <if test="provinceName">province_name = #{provinceName},</if>
+            <if test="cityCode">city_code = #{cityCode},</if>
+            <if test="cityName">city_name = #{cityName},</if>
+            <if test="districtCode">district_code = #{districtCode},</if>
+            <if test="districtName">district_name = #{districtName},</if>
             <if test="detail != null">
                 detail = #{detail},
             </if>
